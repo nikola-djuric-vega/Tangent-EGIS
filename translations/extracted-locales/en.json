@@ -1,0 +1,62 @@
+{
+  "0GpoGh": {
+    "defaultMessage": "Search suggestions",
+    "description": "Phrase for search suggestion"
+  },
+  "5oA+B5": {
+    "defaultMessage": "Read more",
+    "description": "Phrase for read more"
+  },
+  "7E2Em9": {
+    "defaultMessage": "Popular searches",
+    "description": "Phrase for popular searches"
+  },
+  "DNSCBQ": {
+    "defaultMessage": "Get directions",
+    "description": "Phrase for get directions"
+  },
+  "UKIfju": {
+    "defaultMessage": "Download",
+    "description": "Word for download"
+  },
+  "Va1/NV": {
+    "defaultMessage": "Get in touch",
+    "description": "Phrase for get in touch"
+  },
+  "VmYNBY": {
+    "defaultMessage": "Insight Tags",
+    "description": "Phrase for insight tags"
+  },
+  "ZnI273": {
+    "defaultMessage": "Sorry, we couldn’t find any results for your search",
+    "description": "Phrase for no results on search"
+  },
+  "ax1mrX": {
+    "defaultMessage": "mins read",
+    "description": "Phrase for read length"
+  },
+  "bjn78+": {
+    "defaultMessage": "{duration} Mins",
+    "description": "Word for minutes"
+  },
+  "mp/VW0": {
+    "defaultMessage": "Top pages",
+    "description": "Phrase for top page"
+  },
+  "njE6dj": {
+    "defaultMessage": "FOLLOW REGION FEED",
+    "description": "Phrase for follow region feed"
+  },
+  "nlhDo1": {
+    "defaultMessage": "More results",
+    "description": "Phrase for more results"
+  },
+  "qU8mZF": {
+    "defaultMessage": "Search here",
+    "description": "Phrase for search here"
+  },
+  "vBMAvp": {
+    "defaultMessage": "Published",
+    "description": "Phrase for published"
+  }
+}

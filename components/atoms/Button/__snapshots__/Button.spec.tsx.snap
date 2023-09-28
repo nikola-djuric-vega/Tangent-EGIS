@@ -1,0 +1,33 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`ButtonComponent it should render a primary button 1`] = `
+<span
+  class="text-midnight-blue group-hover:text-super-lime"
+>
+  primary
+</span>
+`;
+
+exports[`ButtonComponent it should render a primary button with a icon 1`] = `
+<span
+  class="text-midnight-blue group-hover:text-white"
+>
+  primary
+</span>
+`;
+
+exports[`ButtonComponent it should render a secondary button 1`] = `
+<span
+  class="text-midnight-blue group-hover:text-super-lime"
+>
+  secondary
+</span>
+`;
+
+exports[`ButtonComponent it should render a tertiary button 1`] = `
+<span
+  class="bg-opacity-0 hover:underline"
+>
+  tertiary
+</span>
+`;

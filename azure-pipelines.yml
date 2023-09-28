@@ -1,0 +1,209 @@
+# Node.js React Web App to Linux on Azure
+# Build a Node.js React app and deploy it to Azure as a Linux web app.
+# Add steps that analyze code, save build artifacts, deploy, and more:
+# https://docs.microsoft.com/azure/devops/pipelines/languages/javascript
+
+trigger:
+  - develop
+  - release/*
+  - master
+
+variables:
+  ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/develop') }}:
+    # Azure Resource Manager connection created during pipeline creation
+    azureSubscription: '896fc771-90c1-42a6-9049-761c64c99240' # egis-test-svc-conn
+    previewSecret: $(DEV_PREVIEW_SECRET)
+    cmsProjectAlias: $(DEV_CMS_PROJECT_ALIAS)
+    cmsApiKey: $(DEV_CMS_API_KEY)
+    umbracoManagementApiUrl: '$(DEV_UMBRACO_MANAGEMENT_API_URL)'
+    nextBingMapsKey: '$(DEV_NEXT_PUBLIC_BING_MAPS_KEY)'
+    nextGoogleMapsKey: '$(DEV_NEXT_PUBLIC_GOOGLE_MAPS_KEY)'
+    nextGoogleAnalyticsId: '$(DEV_NEXT_PUBLIC_GOOGLE_ANALYTICS_ID)'
+    nextGoogleRecaptchaKey: '$(DEV_NEXT_PUBLIC_GOOGLE_RECAPTCHA_KEY)'
+    nextRevalidateDuration: $(DEV_NEXT_REVALIDATE_DURATION)
+    nextSearchUrl: '$(DEV_NEXT_PUBLIC_SEARCH_URL)'
+    nextSearchSuggestionApiKey: '$(DEV_NEXT_PUBLIC_SEARCH_SUGGESTION_API_KEY)'
+    nextSearchServiceEndpoint: '$(DEV_NEXT_PUBLIC_SEARCH_SERVICE_ENDPOINT)'
+    nextSearchIndexName: '$(DEV_NEXT_PUBLIC_SEARCH_INDEX_NAME)'
+    nextSearchSuggestionTerm: '$(DEV_NEXT_PUBLIC_SEARCH_SUGGESTION_TERM)'
+    nextSearchApiVersion: '$(DEV_NEXT_PUBLIC_SEARCH_API_VERSION)'
+    nextSearchSuggesterName: '$(DEV_NEXT_PUBLIC_SEARCH_SUGGESTER_NAME)'
+    nextFormSubmissionApi: '$(DEV_NEXT_PUBLIC_FORM_SUBMISSION_API)'
+    webAppName: egis-test-as-site-gen
+    resourceGroupName: egis-test-rg
+    frontdoorName: egis-test-frontdoor
+    slotDeploy: false
+    slotName: production
+
+  ${{ if startsWith(variables['Build.SourceBranch'], 'refs/heads/release/') }}:
+    # Azure Resource Manager connection created during pipeline creation
+    azureSubscription: '118ff8c8-5055-42b3-a105-1717abdc9b1e' # egis-uat-svc-conn
+    previewSecret: $(UAT_PREVIEW_SECRET)
+    cmsProjectAlias: $(UAT_CMS_PROJECT_ALIAS)
+    cmsApiKey: $(UAT_CMS_API_KEY)
+    umbracoManagementApiUrl: '$(UAT_UMBRACO_MANAGEMENT_API_URL)'
+    nextBingMapsKey: '$(UAT_NEXT_PUBLIC_BING_MAPS_KEY)'
+    nextGoogleMapsKey: '$(UAT_NEXT_PUBLIC_GOOGLE_MAPS_KEY)'
+    nextGoogleAnalyticsId: '$(UAT_NEXT_PUBLIC_GOOGLE_ANALYTICS_ID)'
+    nextGoogleRecaptchaKey: '$(UAT_NEXT_PUBLIC_GOOGLE_RECAPTCHA_KEY)'
+    nextRevalidateDuration: $(UAT_NEXT_REVALIDATE_DURATION)
+    nextSearchUrl: $(UAT_NEXT_PUBLIC_SEARCH_URL)
+    nextSearchSuggestionApiKey: $(UAT_NEXT_PUBLIC_SEARCH_SUGGESTION_API_KEY)
+    nextSearchServiceEndpoint: $(UAT_NEXT_PUBLIC_SEARCH_SERVICE_ENDPOINT)
+    nextSearchIndexName: $(UAT_NEXT_PUBLIC_SEARCH_INDEX_NAME)
+    nextSearchSuggestionTerm: $(UAT_NEXT_PUBLIC_SEARCH_SUGGESTION_TERM)
+    nextSearchApiVersion: $(UAT_NEXT_PUBLIC_SEARCH_API_VERSION)
+    nextSearchSuggesterName: $(UAT_NEXT_PUBLIC_SEARCH_SUGGESTER_NAME)
+    nextFormSubmissionApi: '$(UAT_NEXT_PUBLIC_FORM_SUBMISSION_API)'
+    webAppName: egis-uat-as-site-gen
+    #     slotDeploy: false
+    #     slotName: production
+    resourceGroupName: egis-uat-rg
+    frontdoorName: egis-uat-frontdoor
+    slotDeploy: true
+    slotName: egis-uat-ass-site-gen
+
+  ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/master') }}:
+    # Azure Resource Manager connection created during pipeline creation
+    azureSubscription: 'daa558fa-242d-4274-b728-f1f200ed46ac' # egis-prod-svc-conn
+    previewSecret: $(PROD_PREVIEW_SECRET)
+    cmsProjectAlias: $(PROD_CMS_PROJECT_ALIAS)
+    cmsApiKey: $(PROD_CMS_API_KEY)
+    umbracoManagementApiUrl: '$(PROD_UMBRACO_MANAGEMENT_API_URL)'
+    nextBingMapsKey: '$(PROD_NEXT_PUBLIC_BING_MAPS_KEY)'
+    nextGoogleMapsKey: '$(PROD_NEXT_PUBLIC_GOOGLE_MAPS_KEY)'
+    nextGoogleAnalyticsId: '$(PROD_NEXT_PUBLIC_GOOGLE_ANALYTICS_ID)'
+    nextGoogleRecaptchaKey: '$(PROD_NEXT_PUBLIC_GOOGLE_RECAPTCHA_KEY)'
+    nextRevalidateDuration: $(PROD_NEXT_REVALIDATE_DURATION)
+    nextSearchUrl: '$(PROD_NEXT_PUBLIC_SEARCH_URL)'
+    nextSearchSuggestionApiKey: '$(PROD_NEXT_PUBLIC_SEARCH_SUGGESTION_API_KEY)'
+    nextSearchServiceEndpoint: '$(PROD_NEXT_PUBLIC_SEARCH_SERVICE_ENDPOINT)'
+    nextSearchIndexName: '$(PROD_NEXT_PUBLIC_SEARCH_INDEX_NAME)'
+    nextSearchSuggestionTerm: '$(PROD_NEXT_PUBLIC_SEARCH_SUGGESTION_TERM)'
+    nextSearchApiVersion: '$(PROD_NEXT_PUBLIC_SEARCH_API_VERSION)'
+    nextSearchSuggesterName: '$(PROD_NEXT_PUBLIC_SEARCH_SUGGESTER_NAME)'
+    nextFormSubmissionApi: '$(PROD_NEXT_PUBLIC_FORM_SUBMISSION_API)'
+    webAppName: egis-prod-as-site-gen
+    resourceGroupName: egis-prod-rg
+    frontdoorName: egis-prod-frontdoor
+    slotDeploy: true
+    slotName: 'egis-prod-ass-site-gen'
+
+  # Agent VM image name
+  vmImageName: 'ubuntu-latest'
+
+stages:
+  - stage: Build
+    displayName: Build stage
+    jobs:
+      - job: Build
+        displayName: Build
+        pool:
+          vmImage: $(vmImageName)
+        steps:
+          - task: NodeTool@0
+            inputs:
+              versionSpec: '14.x'
+            displayName: 'Install Node.js'
+          - task: Cache@2
+            displayName: 'Cache .next/cache'
+            inputs:
+              key: next | $(Agent.OS)
+              path: '$(System.DefaultWorkingDirectory)/.next/cache'
+          - task: CmdLine@2
+            displayName: 'Build Main Site'
+            env:
+              PREVIEW_SECRET: $(previewSecret)
+              CMS_PROJECT_ALIAS: $(cmsProjectAlias)
+              CMS_API_KEY: $(cmsApiKey)
+              UMBRACO_MANAGEMENT_API_URL: $(umbracoManagementApiUrl)
+              NEXT_PUBLIC_BING_MAPS_KEY: $(nextBingMapsKey)
+              NEXT_PUBLIC_GOOGLE_MAPS_KEY: $(nextGoogleMapsKey)
+              NEXT_PUBLIC_GOOGLE_ANALYTICS_ID: $(nextGoogleAnalyticsId)
+              NEXT_PUBLIC_GOOGLE_RECAPTCHA_KEY: $(nextGoogleRecaptchaKey)
+              NEXT_REVALIDATE_DURATION: $(nextRevalidateDuration)
+              NEXT_PUBLIC_SEARCH_URL: $(nextSearchUrl)
+              NEXT_PUBLIC_SEARCH_SUGGESTION_API_KEY: $(nextSearchSuggestionApiKey)
+              NEXT_PUBLIC_SEARCH_SERVICE_ENDPOINT: $(nextSearchServiceEndpoint)
+              NEXT_PUBLIC_SEARCH_INDEX_NAME: $(nextSearchIndexName)
+              NEXT_PUBLIC_SEARCH_SUGGESTION_TERM: $(nextSearchSuggestionTerm)
+              NEXT_PUBLIC_SEARCH_API_VERSION: $(nextSearchApiVersion)
+              NEXT_PUBLIC_SEARCH_SUGGESTER_NAME: $(nextSearchSuggesterName)
+              NEXT_PUBLIC_FORM_SUBMISSION_API: $(nextFormSubmissionApi)
+            inputs:
+              script: |
+                printenv
+                npm install
+                npm run test
+                npm run build --if-present
+          - task: ArchiveFiles@2
+            displayName: 'Create build folder ZIP'
+            inputs:
+              rootFolderOrFile: '$(System.DefaultWorkingDirectory)'
+              includeRootFolder: false
+              archiveType: 'zip'
+              archiveFile: '$(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip'
+              replaceExistingArchive: true
+          - task: PublishBuildArtifacts@1
+            displayName: 'Publish build artifact'
+            inputs:
+              PathtoPublish: '$(Build.ArtifactStagingDirectory)'
+              ArtifactName: 'MainSiteBuild'
+              publishLocation: 'Container'
+      - deployment: Deploy
+        displayName: Deploy
+        environment: '${{variables.webAppName}}'
+        dependsOn: Build
+        pool:
+          vmImage: $(vmImageName)
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - task: DownloadBuildArtifacts@0
+                  inputs:
+                    buildType: 'current'
+                    downloadType: 'single'
+                    artifactName: 'MainSiteBuild'
+                    itemPattern: '**'
+                    downloadPath: '$(System.ArtifactsDirectory)'
+                - task: AzureRmWebAppDeployment@4
+                  displayName: 'Azure App Service Deploy: ${{variables.webAppName}}'
+                  env:
+                    PREVIEW_SECRET: $(previewSecret)
+                    CMS_PROJECT_ALIAS: $(cmsProjectAlias)
+                    CMS_API_KEY: $(cmsApiKey)
+                    UMBRACO_MANAGEMENT_API_URL: $(umbracoManagementApiUrl)
+                    NEXT_PUBLIC_BING_MAPS_KEY: $(nextBingMapsKey)
+                    NEXT_PUBLIC_GOOGLE_MAPS_KEY: $(nextGoogleMapsKey)
+                    NEXT_PUBLIC_GOOGLE_ANALYTICS_ID: $(nextGoogleAnalyticsId)
+                    NEXT_PUBLIC_GOOGLE_RECAPTCHA_KEY: $(nextGoogleRecaptchaKey)
+                    NEXT_REVALIDATE_DURATION: $(nextRevalidateDuration)
+                    NEXT_PUBLIC_SEARCH_URL: $(nextSearchUrl)
+                    NEXT_PUBLIC_SEARCH_SUGGESTION_API_KEY: $(nextSearchSuggestionApiKey)
+                    NEXT_PUBLIC_SEARCH_SERVICE_ENDPOINT: $(nextSearchServiceEndpoint)
+                    NEXT_PUBLIC_SEARCH_INDEX_NAME: $(nextSearchIndexName)
+                    NEXT_PUBLIC_SEARCH_SUGGESTION_TERM: $(nextSearchSuggestionTerm)
+                    NEXT_PUBLIC_SEARCH_API_VERSION: $(nextSearchApiVersion)
+                    NEXT_PUBLIC_SEARCH_SUGGESTER_NAME: $(nextSearchSuggesterName)
+                    NEXT_PUBLIC_FORM_SUBMISSION_API: $(nextFormSubmissionApi)
+                  inputs:
+                    ConnectionType: 'AzureRM'
+                    azureSubscription: ${{variables.azureSubscription}}
+                    appType: webAppLinux
+                    WebAppName: ${{variables.webAppName}}
+                    deployToSlotOrASE: ${{variables.slotDeploy}}
+                    ResourceGroupName: ${{variables.resourceGroupName}}
+                    SlotName: ${{variables.slotName}}
+                    packageForLinux: '$(System.ArtifactsDirectory)/MainSiteBuild/$(Build.BuildId).zip'
+                    RuntimeStack: 'NODE|14-lts'
+                    StartupCommand: 'npm run start'
+                - task: AzureCLI@2
+                  displayName: 'Purge Endpoint'
+                  inputs:
+                    azureSubscription: ${{variables.azureSubscription}}
+                    scriptType: 'bash'
+                    scriptLocation: 'inlineScript'
+                    inlineScript: |
+                      az extension add --name front-door
+                      az network front-door purge-endpoint --name "${{variables.frontdoorName}}" --resource-group "${{variables.resourceGroupName}}" --content-paths "/*"             

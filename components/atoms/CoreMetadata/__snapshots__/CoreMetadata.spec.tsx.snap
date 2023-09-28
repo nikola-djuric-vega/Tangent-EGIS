@@ -1,0 +1,59 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`CoreMetadata should render metadata title 1`] = `
+<body>
+  <div>
+    <title>
+      Egis Homepage
+    </title>
+    <meta
+      content="Egis Meta Description"
+      name="description"
+    />
+    <link
+      href="/favicon.ico"
+      rel="icon"
+    />
+    <meta
+      content="Egis"
+      property="og:title"
+    />
+    <meta
+      content="Egis"
+      name="twitter:title"
+    />
+    <meta
+      content="Egis OG description"
+      property="og:description"
+    />
+    <meta
+      content="Egis OG description"
+      name="twitter:description"
+    />
+    <meta
+      content="https://image.img"
+      property="og:image"
+    />
+    <meta
+      content="homepage"
+      property="og:type"
+    />
+    <meta
+      content="/"
+      property="og:url"
+    />
+    <meta
+      content="en_US"
+      property="og:locale"
+    />
+    <meta
+      content="fr"
+      property="og:locale:alternate"
+    />
+    <meta
+      content="summary"
+      name="twitter:card"
+    />
+  </div>
+</body>
+`;

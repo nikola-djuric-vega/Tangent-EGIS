@@ -1,0 +1,66 @@
+image: node:14.17.3
+
+before_script:
+  - apt-get update -qy
+  - echo "$CI_PROJECT_DIR"
+
+stages:
+  - test
+  - build
+  - deploy
+
+test:
+  stage: test
+  only:
+    - /^feature\/.*$/
+    - /^bugfix\/.*$/
+    - /^hotfix\/.*$/
+    - /^release\/.*$/
+    - develop
+    - master
+  script:
+    - npm install
+    - npm test
+
+build:
+  stage: build
+  only:
+    - /^feature\/.*$/
+    - /^bugfix\/.*$/
+    - /^hotfix\/.*$/
+    - /^release\/.*$/
+    - develop
+    - master
+  script:
+    - echo "Installing required applications"
+    - npm --verbose ci --production
+    - echo "Building deploy package"
+    - npm run build
+    - tar -czvf node_modules.tar.gz node_modules/
+    - rm -rf node_modules/
+    - rm -rf .git/
+    - echo "Build successful"
+  artifacts:
+    paths:
+      - ./**/*
+
+Deploy_Test:
+  stage: deploy
+  only:
+    - /^feature\/.*$/
+    - /^bugfix\/.*$/
+    - /^hotfix\/.*$/
+    - develop
+  script:
+    - apt-get install -y lftp
+    - export env="test"
+    - lftp -c "set ftps:initial-prot ""; set ftp:ssl-force true; set ftp:ssl-protect-data true; set ssl:verify-certificate no; open -u egis-$env-as-site-gen__egis-$env-ass-site-gen\\$FTPS_USER,\"$FTPS_PASSWORD\" ftps://$TEST_FTPS_HOST; mirror -Rev -P 1 ./ ./site/wwwroot --ignore-time --no-perms --no-umask --exclude '.git/' --exclude 'additional.d.ts'"
+
+Deploy_UAT:
+  stage: deploy
+  only:
+    - /^release\/.*$/
+  script:
+    - apt-get install -y lftp
+    - export env="uat"
+    - lftp -c "set ftps:initial-prot ""; set ftp:ssl-force true; set ftp:ssl-protect-data true; set ssl:verify-certificate no; open -u egis-$env-as-site-gen__egis-$env-ass-site-gen\\$FTPS_USER,\"$FTPS_PASSWORD\" ftps://$UAT_FTPS_HOST; mirror -Rev -P 1 ./ ./site/wwwroot --ignore-time --no-perms --no-umask --exclude '.git/' --exclude 'additional.d.ts'"
